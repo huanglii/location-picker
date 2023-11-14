@@ -3,6 +3,7 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import NaiveMap from '@naivemap/mapbox-gl-naive-map'
 import React, { FC, useEffect, useRef, useState } from 'react'
 import useMapStore from './useMapStore'
+import { MapboxStyleSwitcherControl } from './MapboxStyleSwitcherControl'
 
 export type MapboxOptions = Omit<mapboxgl.MapboxOptions, 'container'>
 
@@ -75,6 +76,7 @@ const MapboxMap: FC<MapboxMapProps> = (props) => {
         customAttribution: `v${mapboxgl.version}`,
       })
     )
+    map.addControl(new MapboxStyleSwitcherControl())
 
     map.on('load', () => {
       setMap(map)
