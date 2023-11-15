@@ -150,7 +150,7 @@ const LocationPicker: FC = () => {
   }
 
   return (
-    <div className="w-[281px] p-[10px]">
+    <div className="w-[282px] p-[10px]">
       <Space direction="vertical">
         <Space direction="vertical">
           <Radio.Group
