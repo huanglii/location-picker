@@ -22,8 +22,8 @@ export class MapboxStyleSwitcherControl implements mapboxgl.IControl {
     { title: '标准', uri: 'mapbox://styles/huanglii/clm8knsuz012801r41pbwdcku' },
     { title: '浅色', uri: 'mapbox://styles/huanglii/clm93m2qr011a01r671y2hjjm' },
     { title: '深色', uri: 'mapbox://styles/huanglii/clm8quldc013701nza7a35j7j' },
-    { title: '影像1', uri: './style/satellite.json' },
-    { title: '影像2', uri: 'mapbox://styles/huanglii/cl0j3k0wn000n14nznby52wod' },
+    { title: '影像', uri: 'mapbox://styles/huanglii/cl0j3k0wn000n14nznby52wod' },
+    { title: '天地图', uri: './map-style/satellite.json' },
   ]
 
   private controlContainer: HTMLElement | undefined
