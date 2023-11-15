@@ -2,7 +2,7 @@ import { useRequest } from 'ahooks'
 import { Input, List, Radio, Space, Typography, message } from 'antd'
 import { SearchProps } from 'antd/es/input/Search'
 import mapboxgl from 'mapbox-gl'
-import { FC, useRef, useState } from 'react'
+import { FC, useEffect, useRef, useState } from 'react'
 import { poiSearch, reGeo } from '@/services/amap'
 import useMapStore from '@/components/MapboxMap/useMapStore'
 import { gcj02towgs84 } from '@/utils'
@@ -19,7 +19,11 @@ interface PoiData {
 const LocationPicker: FC = () => {
   const { map } = useMapStore()
   const markerRef = useRef(new mapboxgl.Marker())
-  const popupRef = useRef(new mapboxgl.Popup())
+  const popupRef = useRef(
+    new mapboxgl.Popup({
+      maxWidth: '400px',
+    })
+  )
 
   const [result, seResult] = useState<PoiData>({ count: 0, pois: [] })
   // 类型
@@ -31,6 +35,7 @@ const LocationPicker: FC = () => {
   const { loading: loading1, run: runPoiSearch } = useRequest(poiSearch, {
     manual: true,
     onSuccess(data: any) {
+      markerRef.current.remove()
       const poiList: POI[] = transformPoiList(data.pois)
       seResult({
         count: +data.count,
@@ -75,6 +80,27 @@ const LocationPicker: FC = () => {
       }
     },
   })
+
+  const onMapClick = (e: mapboxgl.MapLayerEventType['click'] & mapboxgl.EventData) => {
+    console.log('click')
+    runReGeo(+e.lngLat.lng.toFixed(6), +e.lngLat.lat.toFixed(6))
+  }
+
+  useEffect(() => {
+    setKeywords('')
+    // seResult({
+    //   count: 0,
+    //   pois: [],
+    // })
+
+    if (map && pickType === '3') {
+      map.on('click', onMapClick)
+    }
+
+    return () => {
+      map?.off('click', onMapClick)
+    }
+  }, [map, pickType])
 
   useMapLayerEvent(
     map,
@@ -152,10 +178,7 @@ const LocationPicker: FC = () => {
             defaultValue="1"
             value={pickType}
             buttonStyle="solid"
-            onChange={(e) => {
-              setKeywords('')
-              setPickType(e.target.value)
-            }}
+            onChange={(e) => setPickType(e.target.value)}
           >
             <Radio.Button value={'1'}>地点搜索</Radio.Button>
             <Radio.Button value={'2'}>坐标定位</Radio.Button>
@@ -176,44 +199,42 @@ const LocationPicker: FC = () => {
             />
           )}
         </Space>
-        {pickType !== '3' && (
-          <List
-            bordered
-            size="small"
-            loading={loading1 || loading2}
-            dataSource={result.pois}
-            pagination={{
-              size: 'small',
-              total: result.count,
-              pageSize: 5,
-              hideOnSinglePage: true,
-              showSizeChanger: false,
-              showLessItems: true,
-              onChange: onPageChange,
-            }}
-            renderItem={(item) => (
-              <List.Item>
-                <div className="w-[225px] hover:cursor-pointer" onClick={() => onItemClick(item)}>
-                  <p>
-                    <Typography.Text ellipsis strong>
-                      {item.name}
-                    </Typography.Text>
-                  </p>
-                  <p>
-                    <Typography.Text ellipsis type="secondary">
-                      {item.address}
-                    </Typography.Text>
-                  </p>
-                  <p>
-                    <Typography.Text ellipsis copyable>
-                      {`${item.lon.toFixed(6)},${item.lat.toFixed(6)}`}
-                    </Typography.Text>
-                  </p>
-                </div>
-              </List.Item>
-            )}
-          />
-        )}
+        <List
+          bordered
+          size="small"
+          loading={loading1 || loading2}
+          dataSource={result.pois}
+          pagination={{
+            size: 'small',
+            total: result.count,
+            pageSize: 5,
+            hideOnSinglePage: true,
+            showSizeChanger: false,
+            showLessItems: true,
+            onChange: onPageChange,
+          }}
+          renderItem={(item) => (
+            <List.Item>
+              <div className="w-[225px] hover:cursor-pointer" onClick={() => onItemClick(item)}>
+                <p>
+                  <Typography.Text ellipsis strong>
+                    {item.name}
+                  </Typography.Text>
+                </p>
+                <p>
+                  <Typography.Text ellipsis type="secondary">
+                    {item.address}
+                  </Typography.Text>
+                </p>
+                <p>
+                  <Typography.Text ellipsis copyable>
+                    {`${item.lon},${item.lat}`}
+                  </Typography.Text>
+                </p>
+              </div>
+            </List.Item>
+          )}
+        />
       </Space>
     </div>
   )

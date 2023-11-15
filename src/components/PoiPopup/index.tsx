@@ -1,21 +1,26 @@
-import { Typography } from 'antd'
+import { ConfigProvider, Typography } from 'antd'
+import zhCN from 'antd/lib/locale/zh_CN'
 import { FC } from 'react'
 
 interface PoiPopupProps {
   data: POI
 }
 
-const { Title, Paragraph } = Typography
+const { Title, Text } = Typography
 
 const PoiPopup: FC<PoiPopupProps> = ({ data }) => {
   return (
-    <div>
+    <ConfigProvider locale={zhCN}>
       <Title level={5}>{data.name}</Title>
-      <Paragraph copyable>{data.address}</Paragraph>
-      <Typography.Text copyable>
-        {`${data.lon.toFixed(6)},${data.lat.toFixed(6)}`}
-      </Typography.Text>
-    </div>
+      <div>
+        <Text strong>地址: </Text>
+        <Text copyable>{data.address}</Text>
+      </div>
+      <div>
+        <Text strong>坐标: </Text>
+        <Text copyable>{`${data.lon},${data.lat}`}</Text>
+      </div>
+    </ConfigProvider>
   )
 }
 
