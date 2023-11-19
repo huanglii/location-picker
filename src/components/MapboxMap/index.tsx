@@ -1,9 +1,9 @@
+import NaiveMap from '@naivemap/mapbox-gl-naive-map'
 import mapboxgl, { GeolocateControl, NavigationControl } from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import NaiveMap from '@naivemap/mapbox-gl-naive-map'
-import React, { FC, useEffect, useRef, useState } from 'react'
-import useMapStore from './useMapStore'
+import { FC, useEffect, useRef, useState } from 'react'
 import { MapboxStyleSwitcherControl } from './MapboxStyleSwitcherControl'
+import useMapStore from './useMapStore'
 
 export type MapboxOptions = Omit<mapboxgl.MapboxOptions, 'container'>
 

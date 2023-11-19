@@ -1,11 +1,11 @@
+import { gcj02towgs84 } from '@/utils'
 import { GroupLayer } from '@naivemap/mapbox-gl-naive-map'
 import bbox from '@turf/bbox'
-import { gcj02towgs84 } from '@/utils'
 
 export function transformPoiList(pois: any[]): POI[] {
   return pois.map((item: any) => {
     const gcj02 = item.location.split(',')
-    const wgs84 = gcj02towgs84(gcj02[0], gcj02[1])
+    const wgs84 = gcj02towgs84(+gcj02[0], +gcj02[1])
     return {
       id: item.id,
       name: item.name,

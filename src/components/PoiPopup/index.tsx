@@ -12,13 +12,19 @@ const PoiPopup: FC<PoiPopupProps> = ({ data }) => {
   return (
     <ConfigProvider locale={zhCN}>
       <Title level={5}>{data.name}</Title>
-      <div>
-        <Text strong>地址: </Text>
-        <Text copyable>{data.address}</Text>
+      <div className="flex">
+        <Text strong className="mr-2">
+          地址:{' '}
+        </Text>
+        <Text copyable className="flex-1">
+          {data.address}
+        </Text>
       </div>
-      <div>
-        <Text strong>坐标: </Text>
-        <Text copyable>{`${data.lon},${data.lat}`}</Text>
+      <div className="flex">
+        <Text strong className="mr-2">
+          坐标:{' '}
+        </Text>
+        <Text copyable className="flex-1">{`${data.lon},${data.lat}`}</Text>
       </div>
     </ConfigProvider>
   )

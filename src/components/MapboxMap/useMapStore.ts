@@ -1,5 +1,5 @@
-import { create } from 'zustand'
 import NaiveMap, { GroupLayer } from '@naivemap/mapbox-gl-naive-map'
+import { create } from 'zustand'
 
 interface ClearOptions {
   groupLayerIds?: string[]

@@ -1,20 +1,27 @@
+import useMapStore from '@/components/MapboxMap/useMapStore'
+import useMapLayerEvent from '@/hooks/useMapLayerEvent'
+import { poiSearch, reGeo } from '@/services/amap'
 import { useRequest } from 'ahooks'
-import { Input, List, Radio, Space, Typography, message } from 'antd'
+import { Input, List, Segmented, Space, Typography, message } from 'antd'
 import { SearchProps } from 'antd/es/input/Search'
 import mapboxgl from 'mapbox-gl'
 import { FC, useEffect, useRef, useState } from 'react'
-import { poiSearch, reGeo } from '@/services/amap'
-import useMapStore from '@/components/MapboxMap/useMapStore'
-import { gcj02towgs84 } from '@/utils'
-import { getPoiGroupLayer, transformPoiList } from './util'
-import useMapLayerEvent from '@/hooks/useMapLayerEvent'
 import { createRoot } from 'react-dom/client'
 import PoiPopup from '../PoiPopup'
+import { getPoiGroupLayer, transformPoiList } from './util'
 
 interface PoiData {
   count: number
   pois: POI[]
 }
+
+type PickType = '1' | '2' | '3'
+
+const pickTypeList: { label: string; value: PickType }[] = [
+  { label: '地点搜索', value: '1' },
+  { label: '坐标定位', value: '2' },
+  { label: '地图选点', value: '3' },
+]
 
 const LocationPicker: FC = () => {
   const { map } = useMapStore()
@@ -27,7 +34,7 @@ const LocationPicker: FC = () => {
 
   const [result, seResult] = useState<PoiData>({ count: 0, pois: [] })
   // 类型
-  const [pickType, setPickType] = useState<'1' | '2' | '3'>('1')
+  const [pickType, setPickType] = useState<PickType>('1')
   // LBS key
   const [lbsKey, setLbsKey] = useState('')
   const [keywords, setKeywords] = useState('')
@@ -82,8 +89,12 @@ const LocationPicker: FC = () => {
   })
 
   const onMapClick = (e: mapboxgl.MapLayerEventType['click'] & mapboxgl.EventData) => {
-    console.log('click')
-    runReGeo(+e.lngLat.lng.toFixed(6), +e.lngLat.lat.toFixed(6))
+    const features = map?.queryRenderedFeatures(e.point, {
+      layers: ['clusters', 'cluster-count', 'unclustered-point'],
+    })
+    if (!features || features.length === 0) {
+      runReGeo(+e.lngLat.lng.toFixed(6), +e.lngLat.lat.toFixed(6))
+    }
   }
 
   useEffect(() => {
@@ -92,9 +103,13 @@ const LocationPicker: FC = () => {
     //   count: 0,
     //   pois: [],
     // })
-
-    if (map && pickType === '3') {
-      map.on('click', onMapClick)
+    if (map) {
+      if (pickType === '3') {
+        map.on('click', onMapClick)
+        map.getCanvas().style.cursor = 'pointer'
+      } else {
+        map.getCanvas().style.cursor = ''
+      }
     }
 
     return () => {
@@ -171,71 +186,86 @@ const LocationPicker: FC = () => {
   }
 
   return (
-    <div className="w-[282px] p-[10px] border-r-[1px]">
-      <Space direction="vertical">
+    <div className="">
+      <div className="flex items-center p-[10px] bg-gradient-to-r from-cyan-500 to-blue-500">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M21 4.04145C22.8564 2.96966 25.1436 2.96966 27 4.04145L39.7846 11.4226C41.641 12.4944 42.7846 14.4752 42.7846 16.6188V31.3812C42.7846 33.5248 41.641 35.5056 39.7846 36.5774L27 43.9585C25.1436 45.0303 22.8564 45.0303 21 43.9585L8.21539 36.5774C6.35898 35.5056 5.21539 33.5248 5.21539 31.3812V16.6188C5.21539 14.4752 6.35898 12.4944 8.21539 11.4226L21 4.04145Z"
+            stroke="white"
+            stroke-width="4"
+          />
+          <rect x="14" y="17" width="4" height="15" rx="2" fill="white" />
+          <rect x="22" y="24" width="4" height="4" rx="2" fill="white" />
+          <rect x="30" y="17" width="4" height="15" rx="2" fill="white" />
+        </svg>
+        <span className="ml-2 text-lg text-white font-bold">坐标拾取器 - NaiveMap</span>
+      </div>
+      <div className="p-[10px] border-r-[1px]">
         <Space direction="vertical">
-          <Radio.Group
-            defaultValue="1"
-            value={pickType}
-            buttonStyle="solid"
-            onChange={(e) => setPickType(e.target.value)}
-          >
-            <Radio.Button value={'1'}>地点搜索</Radio.Button>
-            <Radio.Button value={'2'}>坐标定位</Radio.Button>
-            <Radio.Button value={'3'}>地图选点</Radio.Button>
-          </Radio.Group>
-          {/* <Radio.Group defaultValue="amap" value={lbsType} onChange={(e) => setLbsType(e.target.value)}>
+          <Space direction="vertical">
+            <Segmented
+              size="large"
+              options={pickTypeList}
+              defaultValue={pickType}
+              onChange={(value) => setPickType(value as PickType)}
+            />
+            {/* <Radio.Group defaultValue="amap" value={lbsType} onChange={(e) => setLbsType(e.target.value)}>
             <Radio value="amap">高德</Radio>
             <Radio value="bmap">百度</Radio>
           </Radio.Group> */}
-          <Input.Password value={lbsKey} onChange={(e) => setLbsKey(e.target.value)} placeholder="请输入密钥（key）" />
-          {pickType !== '3' && (
-            <Input.Search
-              enterButton
-              value={keywords}
-              placeholder={pickType === '1' ? '请输入关键字' : '请输入坐标, 如: 107.74,30.18'}
-              onChange={(e) => setKeywords(e.target.value)}
-              onSearch={onSearch}
+            <Input.Password
+              value={lbsKey}
+              onChange={(e) => setLbsKey(e.target.value)}
+              placeholder="请输入高德地图 Key"
             />
-          )}
+            {pickType !== '3' && (
+              <Input.Search
+                enterButton
+                value={keywords}
+                placeholder={pickType === '1' ? '请输入关键字' : '请输入坐标, 如: 107.74,30.18'}
+                onChange={(e) => setKeywords(e.target.value)}
+                onSearch={onSearch}
+              />
+            )}
+          </Space>
+          <List
+            bordered
+            size="small"
+            loading={loading1 || loading2}
+            dataSource={result.pois}
+            pagination={{
+              size: 'small',
+              total: result.count > 30 ? 30 : result.count,
+              pageSize: 5,
+              hideOnSinglePage: true,
+              showSizeChanger: false,
+              showLessItems: true,
+              onChange: onPageChange,
+            }}
+            renderItem={(item) => (
+              <List.Item>
+                <div className="w-[225px] hover:cursor-pointer" onClick={() => onItemClick(item)}>
+                  <p>
+                    <Typography.Text ellipsis strong>
+                      {item.name}
+                    </Typography.Text>
+                  </p>
+                  <p>
+                    <Typography.Text ellipsis type="secondary">
+                      {item.address}
+                    </Typography.Text>
+                  </p>
+                  <p>
+                    <Typography.Text ellipsis copyable>
+                      {`${item.lon},${item.lat}`}
+                    </Typography.Text>
+                  </p>
+                </div>
+              </List.Item>
+            )}
+          />
         </Space>
-        <List
-          bordered
-          size="small"
-          loading={loading1 || loading2}
-          dataSource={result.pois}
-          pagination={{
-            size: 'small',
-            total: result.count,
-            pageSize: 5,
-            hideOnSinglePage: true,
-            showSizeChanger: false,
-            showLessItems: true,
-            onChange: onPageChange,
-          }}
-          renderItem={(item) => (
-            <List.Item>
-              <div className="w-[225px] hover:cursor-pointer" onClick={() => onItemClick(item)}>
-                <p>
-                  <Typography.Text ellipsis strong>
-                    {item.name}
-                  </Typography.Text>
-                </p>
-                <p>
-                  <Typography.Text ellipsis type="secondary">
-                    {item.address}
-                  </Typography.Text>
-                </p>
-                <p>
-                  <Typography.Text ellipsis copyable>
-                    {`${item.lon},${item.lat}`}
-                  </Typography.Text>
-                </p>
-              </div>
-            </List.Item>
-          )}
-        />
-      </Space>
+      </div>
     </div>
   )
 }

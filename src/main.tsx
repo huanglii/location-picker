@@ -6,7 +6,17 @@ import App from './App'
 import '@/styles/index.less'
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
-  <ConfigProvider locale={zhCN}>
+  <ConfigProvider
+    locale={zhCN}
+    theme={{
+      components: {
+        Segmented: {
+          itemSelectedBg: '#1677ff',
+          itemSelectedColor: '#fff',
+        },
+      },
+    }}
+  >
     <Watermark content="naivemap.com">
       <App />
     </Watermark>

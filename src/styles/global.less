@@ -1,4 +1,16 @@
 /* 该文件放置全局样式文件，也可放置页面样式文件，如字体等 */
+@import './fonts/medium.scss';
+@import './fonts/regular.scss';
+
+:root {
+  --content-width: 900px;
+  --font-family: PingFang SC, HarmonyOS_Regular, Helvetica Neue, Microsoft YaHei, sans-serif;
+  --font-family-code: Fira Code Retina, Fira Code, Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+}
+
+body {
+  font-family: var(--font-family);
+}
 
 .mapboxgl-popup-close-button {
   width: 20px;
