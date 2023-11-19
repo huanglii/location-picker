@@ -5,7 +5,7 @@ const { Paragraph, Link, Text } = Typography
 
 const Tip: FC = () => {
   useEffect(() => {
-    openNotification(300)
+    openNotification(3)
   }, [])
 
   const openNotification = (duration = 5) => {
