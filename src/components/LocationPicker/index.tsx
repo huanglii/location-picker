@@ -150,7 +150,7 @@ const LocationPicker: FC = () => {
         pois: [],
       })
       if (pickType === '1') {
-        runPoiSearch({ key: lbsKey, keywords: value, city: '023', page: 1 })
+        runPoiSearch({ key: lbsKey, keywords: value, page: 1 })
       } else {
         const location = value.split(',')
         if (location.length === 2) {
@@ -166,7 +166,7 @@ const LocationPicker: FC = () => {
 
   const onPageChange = (page: number) => {
     if (pickType === '1') {
-      runPoiSearch({ key: lbsKey, keywords: keywords, city: '023', page: page })
+      runPoiSearch({ key: lbsKey, keywords: keywords, page: page })
     }
   }
 
@@ -186,7 +186,7 @@ const LocationPicker: FC = () => {
   }
 
   return (
-    <div className="">
+    <div className="h-full">
       <div className="flex items-center p-[10px] bg-gradient-to-r from-cyan-500 to-blue-500">
         <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path
@@ -200,71 +200,67 @@ const LocationPicker: FC = () => {
         </svg>
         <span className="ml-2 text-lg text-white font-bold">坐标拾取器 - NaiveMap</span>
       </div>
-      <div className="p-[10px] border-r-[1px]">
+      <div className="h-[calc(100%-68px)] p-[10px] border-r-[1px]">
         <Space direction="vertical">
-          <Space direction="vertical">
-            <Segmented
-              size="large"
-              options={pickTypeList}
-              defaultValue={pickType}
-              onChange={(value) => setPickType(value as PickType)}
-            />
-            {/* <Radio.Group defaultValue="amap" value={lbsType} onChange={(e) => setLbsType(e.target.value)}>
+          <Segmented
+            size="large"
+            options={pickTypeList}
+            defaultValue={pickType}
+            onChange={(value) => setPickType(value as PickType)}
+          />
+          {/* <Radio.Group defaultValue="amap" value={lbsType} onChange={(e) => setLbsType(e.target.value)}>
             <Radio value="amap">高德</Radio>
             <Radio value="bmap">百度</Radio>
           </Radio.Group> */}
-            <Input.Password
-              value={lbsKey}
-              onChange={(e) => setLbsKey(e.target.value)}
-              placeholder="请输入高德地图 Key"
+          <Input.Password value={lbsKey} onChange={(e) => setLbsKey(e.target.value)} placeholder="请输入高德地图 Key" />
+          {pickType !== '3' && (
+            <Input.Search
+              enterButton
+              value={keywords}
+              placeholder={pickType === '1' ? '请输入关键字' : '请输入坐标, 如: 107.74,30.18'}
+              onChange={(e) => setKeywords(e.target.value)}
+              onSearch={onSearch}
             />
-            {pickType !== '3' && (
-              <Input.Search
-                enterButton
-                value={keywords}
-                placeholder={pickType === '1' ? '请输入关键字' : '请输入坐标, 如: 107.74,30.18'}
-                onChange={(e) => setKeywords(e.target.value)}
-                onSearch={onSearch}
-              />
-            )}
-          </Space>
-          <List
-            bordered
-            size="small"
-            loading={loading1 || loading2}
-            dataSource={result.pois}
-            pagination={{
-              size: 'small',
-              total: result.count > 30 ? 30 : result.count,
-              pageSize: 5,
-              hideOnSinglePage: true,
-              showSizeChanger: false,
-              showLessItems: true,
-              onChange: onPageChange,
-            }}
-            renderItem={(item) => (
-              <List.Item>
-                <div className="w-[225px] hover:cursor-pointer" onClick={() => onItemClick(item)}>
-                  <p>
-                    <Typography.Text ellipsis strong>
-                      {item.name}
-                    </Typography.Text>
-                  </p>
-                  <p>
-                    <Typography.Text ellipsis type="secondary">
-                      {item.address}
-                    </Typography.Text>
-                  </p>
-                  <p>
-                    <Typography.Text ellipsis copyable>
-                      {`${item.lon},${item.lat}`}
-                    </Typography.Text>
-                  </p>
-                </div>
-              </List.Item>
-            )}
-          />
+          )}
         </Space>
+        <List
+          bordered
+          size="small"
+          className="poi-list"
+          style={{ marginTop: 8, height: `calc(100% - ${(pickType === '3' ? 85 : 125) + 8}px)` }}
+          loading={loading1 || loading2}
+          dataSource={result.pois}
+          pagination={{
+            size: 'small',
+            total: result.count > 30 ? 30 : result.count,
+            pageSize: 5,
+            hideOnSinglePage: true,
+            showSizeChanger: false,
+            showLessItems: true,
+            onChange: onPageChange,
+          }}
+          renderItem={(item) => (
+            <List.Item>
+              <div className="w-[225px] hover:cursor-pointer" onClick={() => onItemClick(item)}>
+                <p>
+                  <Typography.Text ellipsis strong>
+                    {item.name}
+                  </Typography.Text>
+                </p>
+                <p>
+                  <Typography.Text ellipsis type="secondary">
+                    {item.address}
+                  </Typography.Text>
+                </p>
+                <p>
+                  <Typography.Text ellipsis copyable>
+                    {`${item.lon},${item.lat}`}
+                  </Typography.Text>
+                </p>
+              </div>
+            </List.Item>
+          )}
+        />
       </div>
     </div>
   )

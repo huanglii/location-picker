@@ -14,7 +14,7 @@ const Tip: FC = () => {
       description: (
         <div className="text-justify">
           <Paragraph>
-            该拾取器使用高德 Web 服务 API，如提示 <Text type="danger">[10003] DAILY_QUERY_OVER_LIMIT</Text>
+            该拾取器使用高德 Web 服务 API，输出坐标为 <Text type="success">WGS84</Text>，使用过程中如提示 <Text type="danger">[10003] DAILY_QUERY_OVER_LIMIT</Text>
             ，请前往高德开放平台
             <Link href="https://lbs.amap.com/dev/key" target="_blank">
               申请Key
