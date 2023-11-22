@@ -179,10 +179,15 @@ const LocationPicker: FC = () => {
   }
 
   const onItemClick = (item: POI) => {
-    map?.flyTo({
-      center: [item.lon, item.lat],
-      zoom: 12,
-    })
+    if (map) {
+      const popupNode = document.createElement('div')
+      createRoot(popupNode).render(<PoiPopup data={item} />)
+      popupRef.current.setDOMContent(popupNode).setLngLat([item.lon, item.lat]).addTo(map)
+      map.flyTo({
+        center: [item.lon, item.lat],
+        zoom: 15,
+      })
+    }
   }
 
   return (
