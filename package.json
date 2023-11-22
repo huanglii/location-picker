@@ -2,7 +2,7 @@
   "name": "location-picker",
   "description": "Location Picker",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": "huangli",
   "scripts": {
     "dev": "vite",
