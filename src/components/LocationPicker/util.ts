@@ -46,6 +46,8 @@ export function getPoiGroupLayer(data: POI[], fitBounds = true): GroupLayer {
         cluster: true,
         clusterMaxZoom: 14,
         clusterRadius: 50,
+        // generateId: true,
+        promoteId: 'id',
       },
     },
     layers: [
@@ -78,8 +80,18 @@ export function getPoiGroupLayer(data: POI[], fitBounds = true): GroupLayer {
         paint: {
           'circle-color': '#11b4da',
           'circle-radius': 5,
-          'circle-stroke-width': 2,
-          'circle-stroke-color': '#fff',
+          'circle-stroke-width': [
+            'case',
+            ['boolean', ['feature-state', 'highlight'], false],
+            2, // 要素状态的 highlight 属性为 true 时
+            1.5, // 默认
+          ],
+          'circle-stroke-color': [
+            'case',
+            ['boolean', ['feature-state', 'highlight'], false],
+            '#FF7F27', // 要素状态的 highlight 属性为 true 时
+            '#fff', // 默认
+          ],
         },
         metadata: {
           cursor: 'pointer',

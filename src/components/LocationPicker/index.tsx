@@ -23,12 +23,15 @@ const pickTypeList: { label: string; value: PickType }[] = [
   { label: '地图选点', value: '3' },
 ]
 
+let highlightStateId: string | undefined
+
 const LocationPicker: FC = () => {
   const { map } = useMapStore()
   const markerRef = useRef(new mapboxgl.Marker())
   const popupRef = useRef(
     new mapboxgl.Popup({
       maxWidth: '400px',
+      closeOnClick: false,
     })
   )
 
@@ -38,6 +41,12 @@ const LocationPicker: FC = () => {
   // LBS key
   const [lbsKey, setLbsKey] = useState('')
   const [keywords, setKeywords] = useState('')
+
+  useEffect(() => {
+    if (map) {
+      popupRef.current.on('close', onPopupClose)
+    }
+  }, [map])
 
   const { loading: loading1, run: runPoiSearch } = useRequest(poiSearch, {
     manual: true,
@@ -67,7 +76,7 @@ const LocationPicker: FC = () => {
         createRoot(popupNode).render(
           <PoiPopup
             data={{
-              id: '1',
+              id: '',
               name: center.join(','),
               location: center.join(','),
               lon: center[0],
@@ -88,6 +97,18 @@ const LocationPicker: FC = () => {
     },
   })
 
+  const onPopupClose = () => {
+    if (map && highlightStateId) {
+      // 清除要素状态
+      map.setFeatureState({ source: 'poi', id: highlightStateId }, { highlight: false })
+    }
+    highlightStateId = undefined
+  }
+
+  /**
+   * 地图选点
+   * @param e
+   */
   const onMapClick = (e: mapboxgl.MapLayerEventType['click'] & mapboxgl.EventData) => {
     const features = map?.queryRenderedFeatures(e.point, {
       layers: ['clusters', 'cluster-count', 'unclustered-point'],
@@ -99,10 +120,6 @@ const LocationPicker: FC = () => {
 
   useEffect(() => {
     setKeywords('')
-    // seResult({
-    //   count: 0,
-    //   pois: [],
-    // })
     if (map) {
       if (pickType === '3') {
         map.on('click', onMapClick)
@@ -124,18 +141,12 @@ const LocationPicker: FC = () => {
       if (map && e.features && e.features[0].properties) {
         const properties = e.features[0].properties as POI
         const coordinates: [number, number] = [properties.lon, properties.lat]
-
-        // Ensure that if the map is zoomed out such that
-        // multiple copies of the feature are visible, the
-        // popup appears over the copy being pointed to.
-        while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
-          coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360
-        }
-
+        // 弹窗
         const popupNode = document.createElement('div')
         createRoot(popupNode).render(<PoiPopup data={properties} />)
-
         popupRef.current.setDOMContent(popupNode).setLngLat(coordinates).addTo(map)
+        // 设置选中要素状态
+        setHighlightFeatureState(e.features[0].id as string)
       }
     },
     {
@@ -173,6 +184,8 @@ const LocationPicker: FC = () => {
   const addPoiLayer = (data: POI[], fitBounds = true) => {
     if (map) {
       map.removeGroupLayer('poi')
+      popupRef.current.remove()
+
       const groupLayer = getPoiGroupLayer(data, fitBounds)
       map.addGroupLayer('poi', groupLayer)
     }
@@ -180,13 +193,29 @@ const LocationPicker: FC = () => {
 
   const onItemClick = (item: POI) => {
     if (map) {
+      // 弹窗
       const popupNode = document.createElement('div')
       createRoot(popupNode).render(<PoiPopup data={item} />)
       popupRef.current.setDOMContent(popupNode).setLngLat([item.lon, item.lat]).addTo(map)
+      // 设置选择要素状态
+      setHighlightFeatureState(item.id)
       map.flyTo({
         center: [item.lon, item.lat],
         zoom: 15,
       })
+    }
+  }
+
+  const setHighlightFeatureState = (id: string) => {
+    if (map) {
+      // 设置选中要素状态
+      if (highlightStateId) {
+        // 清除上次的要素状态
+        map.setFeatureState({ source: 'poi', id: highlightStateId }, { highlight: false })
+      }
+      // 设置当前要素状态
+      highlightStateId = id
+      map.setFeatureState({ source: 'poi', id: highlightStateId }, { highlight: true })
     }
   }
 
@@ -244,8 +273,8 @@ const LocationPicker: FC = () => {
             showLessItems: true,
             onChange: onPageChange,
           }}
-          renderItem={(item) => (
-            <List.Item>
+          renderItem={(item, index) => (
+            <List.Item key={index}>
               <div className="w-[225px] hover:cursor-pointer" onClick={() => onItemClick(item)}>
                 <p>
                   <Typography.Text ellipsis strong>

@@ -11,7 +11,7 @@ const { Title, Text } = Typography
 const PoiPopup: FC<PoiPopupProps> = ({ data }) => {
   return (
     <ConfigProvider locale={zhCN}>
-      <Title level={5}>{data.name}</Title>
+      <Title level={5}>{`${data.id ? data.id + '-' : ''}${data.name}`}</Title>
       <div className="flex">
         <Text strong className="mr-2">
           地址:{' '}
